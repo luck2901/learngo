@@ -2,97 +2,35 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 )
 
-func initOpMap() {
-	opMap = make(map[string]func(int, int) int)
+type fooHandler struct{} //instance를 만들고
 
-	opMap["+"] = add
-	opMap["-"] = sub
-	opMap["*"] = mul
-	opMap["/"] = div
-	opMap["**"] = pow
-
+//interface사용
+func (f *fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello Foo!")
 }
 
-func add(a, b int) int {
-	return a + b
-}
-
-func sub(a, b int) int {
-	return a - b
-}
-
-func mul(a, b int) int {
-	return a * b
-}
-
-func div(a, b int) int {
-	return a / b
-}
-
-func pow(a, b int) int {
-	rst := 1
-	for i := 0; i < b; i++ {
-		rst *= a
-	}
-	return rst
+func barHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello Bar!")
 }
 
 func main() {
-	initOpMap()
-	Test()
-}
+	mux := http.NewServeMux()
 
-var opMap map[string]func(int, int) int
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		//Handler 를 등록(request가 들어왔을 때 어떤 일을 할 것인지	)
+		//index 페이지 경로
+		fmt.Fprint(w, "Hello World")
+		//write에 "hello world" 를 출력
+		//response로 hello world를 준다.
+	})
 
-func Calculate(op string, a, b int) int {
-	if v, ok := opMap[op]; ok {
-		return v(a, b)
-	}
-	return 0
-}
+	mux.HandleFunc("/bar", barHandler)
 
-func Test() {
-	if !testCalculate("Test1", "+", 3, 2, 5) {
-		return
-	}
-	if !testCalculate("Test2", "+", 5, 4, 9) {
-		return
-	}
-	if !testCalculate("Test3", "-", 5, 3, 2) {
-		return
-	}
-	if !testCalculate("Test4", "-", 3, 6, -3) {
-		return
-	}
-	if !testCalculate("Test5", "*", 3, 7, 21) {
-		return
-	}
-	if !testCalculate("Test6", "*", 3, 0, 0) {
-		return
-	}
-	if !testCalculate("Test7", "*", 3, -3, -9) {
-		return
-	}
-	if !testCalculate("Test8", "/", 9, 3, 3) {
-		return
-	}
-	if !testCalculate("Test9", "**", 2, 3, 8) {
-		return
-	}
-	if !testCalculate("Test9", "**", 2, 0, 1) {
-		return
-	}
+	mux.Handle("/foo", &fooHandler{})
 
-	fmt.Println("Success")
-}
-
-func testCalculate(testcase, op string, a, b, expected int) bool {
-	o := Calculate(op, a, b)
-	if o != expected {
-		fmt.Printf("%s Failed! expected:%d output: %d\n", testcase, expected, o)
-		return false
-	}
-	return true
+	http.ListenAndServe(":3000", mux)
+	//ListenAndServe로 실행 및 구현
 }
