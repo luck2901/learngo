@@ -8,10 +8,10 @@ import (
 )
 
 type User struct {
-	FistName  string
-	LastName  string
-	Email     string
-	CreatedAt time.Time
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type fooHandler struct{} //instance를 만들고
@@ -19,7 +19,7 @@ type fooHandler struct{} //instance를 만들고
 //interface사용
 func (f *fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	user := new(User)
-	err := json.NewDecoder(r.Body).Decode(user)
+	err := json.NewDecoder(r.Body).Decode(user) // Json형태로 파싱
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err)
@@ -27,8 +27,9 @@ func (f *fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	user.CreatedAt = time.Now()
 
-	data, _ := json.Marshal(user)
+	data, _ := json.Marshal(user) //user를 json형태로 다시 바꿈
 
+	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(data))
 
@@ -57,6 +58,8 @@ func main() {
 	mux.HandleFunc("/bar", barHandler)
 
 	mux.Handle("/foo", &fooHandler{})
+	//위의 HandleFunc는 Handler를 Function으로 지정할 때 사용
+	//Handle은 Handler라는 Instance 형태로 지정할 때는 Handle 사용
 
 	http.ListenAndServe(":3000", mux)
 	//ListenAndServe로 실행 및 구현
