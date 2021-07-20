@@ -34,7 +34,7 @@ func (f *fooHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data, _ := json.Marshal(user) //user를 json형태로 다시 바꿈
 
 	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, string(data))
 
 }
