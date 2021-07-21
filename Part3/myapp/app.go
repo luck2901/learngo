@@ -47,8 +47,8 @@ func getUserInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	data, _ := json.Marshal(user)
 	fmt.Fprint(w, string(data))
 }
@@ -74,6 +74,25 @@ func createrUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(data))
 }
 
+func deleteUserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
+	}
+	_, ok := userMap[id]
+	if !ok {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "No User ID:", id)
+		return
+	}
+	delete(userMap, id) //id키에 맞는 요소 삭제.
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Deleted User ID:", id)
+}
+
 //NewHandler make a new myapp handler
 func NewHandler() http.Handler {
 	userMap = make(map[int]*User)
@@ -84,7 +103,8 @@ func NewHandler() http.Handler {
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc("/users", usersHandler).Methods("GET")
 	mux.HandleFunc("/users", createrUserHandler).Methods("POST")
-	mux.HandleFunc("/users/{id:[0-9]+}", getUserInfoHandler)
+	mux.HandleFunc("/users/{id:[0-9]+}", getUserInfoHandler).Methods("GET")
+	mux.HandleFunc("/users/{id:[0-9]+}", deleteUserInfoHandler).Methods("DELETE")
 
 	return mux
 }
